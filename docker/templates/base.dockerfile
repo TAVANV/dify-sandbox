@@ -1,14 +1,10 @@
 # Base Dockerfile template - shared system dependencies installation logic
-ARG PYTHON_VERSION=dhi.io/python:3-debian13-sfw-ent-dev
+ARG PYTHON_VERSION=python:3.12-slim-bookworm
 FROM ${PYTHON_VERSION}
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Build arguments
-ARG DEBIAN_MIRROR="http://deb.debian.org/debian testing main"
-
 # Install system dependencies
-RUN echo "deb ${DEBIAN_MIRROR}" > /etc/apt/sources.list \
-    && apt-get update \
+RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        -o Dpkg::Options::="--force-confdef" \
        -o Dpkg::Options::="--force-confold" \
@@ -28,4 +24,4 @@ RUN echo "deb ${DEBIAN_MIRROR}" > /etc/apt/sources.list \
 # Install Python dependencies
 ARG PYTHON_PACKAGES="httpx==0.27.2 requests==2.33.0 jinja2==3.1.6 PySocks httpx[socks]"
 
-RUN pip3 install --no-cache-dir ${PYTHON_PACKAGES} 
+RUN pip3 install --no-cache-dir ${PYTHON_PACKAGES}

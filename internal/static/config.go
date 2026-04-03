@@ -71,7 +71,7 @@ func InitConfig(path string) error {
 	}
 
 	if difySandboxGlobalConfigurations.PythonPath == "" {
-		difySandboxGlobalConfigurations.PythonPath = "/opt/python/bin/python3"
+		difySandboxGlobalConfigurations.PythonPath = "/usr/local/bin/python3"
 	}
 
 	if os.Getenv("PYTHON_LIB_PATH") != "" {

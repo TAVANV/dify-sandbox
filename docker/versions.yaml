@@ -6,7 +6,7 @@ versions:
   nodejs: "v20.20.0"
 
   # Python packages (unified configuration)
-  python_packages: "httpx==0.27.2 requests==2.33.0 jinja2==3.1.6 PySocks httpx[socks] numpy pandas thefuzz pydantic matplotlib scikit-learn"
+  python_packages: "httpx==0.27.2 requests==2.33.0 jinja2==3.1.6 PySocks httpx[socks] numpy pandas thefuzz pydantic matplotlib scikit-learn python-docx markdown2"
 
   # System packages
   system_packages:

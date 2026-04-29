@@ -4,3 +4,5 @@ thefuzz
 pydantic
 matplotlib
 scikit-learn
+python-docx
+markdown2

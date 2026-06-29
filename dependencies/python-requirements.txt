@@ -6,3 +6,6 @@ matplotlib
 scikit-learn
 python-docx
 markdown2
+beautifulsoup4
+openpyxl
+py3Fdfs

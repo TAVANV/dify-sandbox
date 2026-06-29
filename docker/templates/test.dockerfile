@@ -8,7 +8,7 @@ ARG GOLANG_MIRROR="https://golang.org/dl"
 ARG TARGETARCH
 
 # Build stage
-FROM golang:${GOLANG_VERSION} AS builder
+FROM golang:${GOLANG_VERSION}-bookworm AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY . /app

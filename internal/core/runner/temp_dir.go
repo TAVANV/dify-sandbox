@@ -22,6 +22,10 @@ func (s *TempDirRunner) WithTempDir(basedir string, paths []string, closures fun
 	if err != nil {
 		return err
 	}
+	err = EnsureSandboxTempDirs(tmpDir)
+	if err != nil {
+		return err
+	}
 
 	// copy files to tmp dir
 	for _, file_path := range paths {
@@ -59,6 +63,22 @@ func (s *TempDirRunner) WithTempDir(basedir string, paths []string, closures fun
 	err = closures(tmpDir)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func EnsureSandboxTempDirs(rootPath string) error {
+	for _, dir := range []string{
+		path.Join(rootPath, "tmp"),
+		path.Join(rootPath, "var", "tmp"),
+	} {
+		if err := os.MkdirAll(dir, 0777); err != nil {
+			return err
+		}
+		if err := os.Chmod(dir, os.ModeSticky|0777); err != nil {
+			return err
+		}
 	}
 
 	return nil

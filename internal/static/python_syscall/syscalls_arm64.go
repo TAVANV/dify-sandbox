@@ -13,7 +13,7 @@ const (
 var ALLOW_SYSCALLS = []int{
 	// file io
 	syscall.SYS_WRITE, syscall.SYS_CLOSE, syscall.SYS_OPENAT, syscall.SYS_READ, syscall.SYS_LSEEK, syscall.SYS_GETDENTS64,
-	syscall.SYS_FSTAT, syscall.SYS_FCNTL,
+	syscall.SYS_FSTAT, syscall.SYS_FCNTL, syscall.SYS_GETCWD, syscall.SYS_UNLINKAT, syscall.SYS_MKDIRAT,
 
 	// thread
 	syscall.SYS_FUTEX, syscall.SYS_SCHED_GETAFFINITY,
@@ -46,7 +46,6 @@ var ALLOW_SYSCALLS = []int{
 
 var ALLOW_ERROR_SYSCALLS = []int{
 	syscall.SYS_CLONE,
-	syscall.SYS_MKDIRAT,
 }
 
 var ALLOW_NETWORK_SYSCALLS = []int{

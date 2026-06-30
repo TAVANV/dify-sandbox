@@ -2,10 +2,13 @@ package integrationtests_test
 
 import (
 	"context"
+	"os"
+	"path"
 	"strings"
 	"testing"
 	"time"
 
+	python_runner "github.com/langgenius/dify-sandbox/internal/core/runner/python"
 	"github.com/langgenius/dify-sandbox/internal/core/runner/types"
 	"github.com/langgenius/dify-sandbox/internal/service"
 )
@@ -182,6 +185,72 @@ print("ok")
 
 	if data.ExitCode != 0 {
 		t.Fatalf("expected zero exit code, got: %d\n", data.ExitCode)
+	}
+}
+
+func TestPythonCanUseTemporaryDirectories(t *testing.T) {
+	explicitName := "explicit-temp-check.txt"
+	hostExplicitPath := path.Join(python_runner.LIB_PATH, "tmp", explicitName)
+	_ = os.Remove(hostExplicitPath)
+
+	resp := service.RunPython3Code(context.TODO(), `
+import os
+import stat
+import tempfile
+
+for directory in ("/tmp", "/var/tmp"):
+    mode = os.stat(directory).st_mode
+    assert stat.S_ISDIR(mode), f"{directory} is not a directory"
+    assert mode & stat.S_IWOTH, f"{directory} is not world-writable"
+    assert mode & stat.S_ISVTX, f"{directory} does not have sticky bit"
+
+with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
+    tmp.write("sandbox-temp-ok")
+    tmp_path = tmp.name
+
+with open(tmp_path) as tmp:
+    assert tmp.read() == "sandbox-temp-ok"
+
+explicit_path = "/tmp/`+explicitName+`"
+with open(explicit_path, "w") as tmp:
+    tmp.write("explicit-ok")
+
+with open(explicit_path) as tmp:
+    assert tmp.read() == "explicit-ok"
+
+mkdir_path = "/tmp/os-mkdir-check"
+os.mkdir(mkdir_path)
+assert os.path.isdir(mkdir_path), "os.mkdir did not create a directory"
+with open(os.path.join(mkdir_path, "nested.txt"), "w") as tmp:
+    tmp.write("mkdir-ok")
+
+mkdtemp_path = tempfile.mkdtemp()
+assert os.path.isdir(mkdtemp_path), "tempfile.mkdtemp did not create a directory"
+with open(os.path.join(mkdtemp_path, "nested.txt"), "w") as tmp:
+    tmp.write("mkdtemp-ok")
+
+with tempfile.TemporaryDirectory() as tmp_dir:
+    assert os.path.isdir(tmp_dir), "TemporaryDirectory did not create a directory"
+    with open(os.path.join(tmp_dir, "nested.txt"), "w") as tmp:
+        tmp.write("temporary-directory-ok")
+
+print(tmp_path)
+	`, "", &types.RunnerOptions{
+		EnableNetwork: true,
+	})
+	if resp.Code != 0 {
+		t.Fatal(resp)
+	}
+
+	data := resp.Data.(*service.RunCodeResponse)
+	if data.Stderr != "" {
+		t.Fatalf("unexpected stderr: %s\n", data.Stderr)
+	}
+	if !strings.Contains(data.Stdout, "/tmp/") {
+		t.Fatalf("expected tempfile path under /tmp, got: %q\n", data.Stdout)
+	}
+	if _, err := os.Stat(hostExplicitPath); !os.IsNotExist(err) {
+		t.Fatalf("expected temp cleanup to remove %s, stat err=%v", hostExplicitPath, err)
 	}
 }
 

@@ -60,6 +60,7 @@ func (p *PythonRunner) Run(
 		codeReader.Close()
 		codeWriter.Close()
 		os.Remove(bootstrapPath)
+		cleanupTempFiles(uid)
 		ReleaseUID(uid)
 	})
 
@@ -126,6 +127,37 @@ func (p *PythonRunner) Run(
 	return outputHandler.Result(), nil
 }
 
+func cleanupTempFiles(uid int) {
+	for _, dir := range []string{
+		path.Join(LIB_PATH, "tmp"),
+		path.Join(LIB_PATH, "var", "tmp"),
+	} {
+		cleanupTempDir(dir, uid)
+	}
+}
+
+func cleanupTempDir(dir string, uid int) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+
+	for _, entry := range entries {
+		entryPath := path.Join(dir, entry.Name())
+		info, err := os.Lstat(entryPath)
+		if err != nil {
+			continue
+		}
+
+		stat, ok := info.Sys().(*syscall.Stat_t)
+		if !ok || int(stat.Uid) != uid {
+			continue
+		}
+
+		_ = os.RemoveAll(entryPath)
+	}
+}
+
 func buildBootstrap(preload string, options *types.RunnerOptions, uid int) string {
 	script := strings.Replace(
 		string(sandbox_fs),
@@ -168,6 +200,9 @@ func (p *PythonRunner) InitializeEnvironment(preload string, options *types.Runn
 	script := buildBootstrap(preload, options, uid)
 
 	bootstrapPath := fmt.Sprintf("%s/tmp/%s.py", LIB_PATH, tempCodeName)
+	if err := runner.EnsureSandboxTempDirs(LIB_PATH); err != nil {
+		return "", err
+	}
 	err := os.MkdirAll(path.Dir(bootstrapPath), 0755)
 	if err != nil {
 		return "", err

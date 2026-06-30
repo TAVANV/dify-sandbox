@@ -49,6 +49,7 @@ func releaseLibBinary(force_remove_old_lib bool) {
 				slog.Error("failed to create lib path", "path", LIB_PATH)
 				panic(fmt.Sprintf("failed to create %s", LIB_PATH))
 			}
+			ensureTempDirs()
 			err = os.WriteFile(path.Join(LIB_PATH, LIB_NAME), python_lib, 0755)
 			if err != nil {
 				slog.Error("failed to write lib", "path", path.Join(LIB_PATH, LIB_NAME))
@@ -61,12 +62,20 @@ func releaseLibBinary(force_remove_old_lib bool) {
 			slog.Error("failed to create lib path", "path", LIB_PATH)
 			panic(fmt.Sprintf("failed to create %s", LIB_PATH))
 		}
+		ensureTempDirs()
 		err = os.WriteFile(path.Join(LIB_PATH, LIB_NAME), python_lib, 0755)
 		if err != nil {
 			slog.Error("failed to write lib", "path", path.Join(LIB_PATH, LIB_NAME))
 			panic(fmt.Sprintf("failed to write %s", path.Join(LIB_PATH, LIB_NAME)))
 		}
 		slog.Info("python runner environment initialized")
+	}
+}
+
+func ensureTempDirs() {
+	if err := runner.EnsureSandboxTempDirs(LIB_PATH); err != nil {
+		slog.Error("failed to create temp dirs", "path", LIB_PATH, "err", err)
+		panic(fmt.Sprintf("failed to create temp dirs in %s", LIB_PATH))
 	}
 }
 

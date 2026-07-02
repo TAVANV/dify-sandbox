@@ -9,3 +9,4 @@ markdown2
 beautifulsoup4
 openpyxl
 py3Fdfs
+pymysql

@@ -254,6 +254,27 @@ print(tmp_path)
 	}
 }
 
+func TestPythonCanImportPyMySQL(t *testing.T) {
+	resp := service.RunPython3Code(context.TODO(), `
+import pymysql
+
+print(pymysql.__version__)
+	`, "", &types.RunnerOptions{
+		EnableNetwork: true,
+	})
+	if resp.Code != 0 {
+		t.Fatal(resp)
+	}
+
+	data := resp.Data.(*service.RunCodeResponse)
+	if data.Stderr != "" {
+		t.Fatalf("unexpected stderr: %s\n", data.Stderr)
+	}
+	if strings.TrimSpace(data.Stdout) == "" {
+		t.Fatal("expected pymysql version in stdout")
+	}
+}
+
 func TestPythonExceptionPopulatesErrorAndStderr(t *testing.T) {
 	resp := service.RunPython3Code(context.TODO(), `
 raise ValueError("bad input")

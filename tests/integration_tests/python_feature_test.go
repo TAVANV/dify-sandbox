@@ -275,6 +275,27 @@ print(pymysql.__version__)
 	}
 }
 
+func TestPythonCanImportGmSSL(t *testing.T) {
+	resp := service.RunPython3Code(context.TODO(), `
+import gmssl
+
+print(gmssl.__path__[0])
+	`, "", &types.RunnerOptions{
+		EnableNetwork: true,
+	})
+	if resp.Code != 0 {
+		t.Fatal(resp)
+	}
+
+	data := resp.Data.(*service.RunCodeResponse)
+	if data.Stderr != "" {
+		t.Fatalf("unexpected stderr: %s\n", data.Stderr)
+	}
+	if strings.TrimSpace(data.Stdout) == "" {
+		t.Fatal("expected gmssl package path in stdout")
+	}
+}
+
 func TestPythonExceptionPopulatesErrorAndStderr(t *testing.T) {
 	resp := service.RunPython3Code(context.TODO(), `
 raise ValueError("bad input")

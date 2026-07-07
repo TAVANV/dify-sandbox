@@ -10,3 +10,4 @@ beautifulsoup4
 openpyxl
 py3Fdfs
 pymysql
+gmssl==3.2.2
